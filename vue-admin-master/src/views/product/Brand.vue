@@ -25,7 +25,7 @@
 			</el-table-column>
 			<el-table-column prop="englishName" label="英文名" sortable>
 			</el-table-column>
-			<el-table-column prop="firstLetter" label="首字母" sortable>
+			<el-table-column prop="sortIndex" label="首字母" sortable>
 			</el-table-column>
 			<el-table-column prop="productType.name" label="商品类型" sortable>
 			</el-table-column>
@@ -49,7 +49,7 @@
 		</el-col>
 
 		<!--新增/编辑界面-->
-		<el-dialog :title="title" :visible.sync="formVisible" :close-on-click-modal="false">
+		<el-dialog @close="clearForm" :title="title" :visible.sync="formVisible" :close-on-click-modal="false">
 			<el-form :model="brand" label-width="80px" :rules="brandRules" ref="brand">
                 <el-form-item label="名称" prop="name">
                     <el-input v-model="brand.name" placeholder="请输入品牌名称"></el-input>
@@ -57,9 +57,22 @@
                 <el-form-item label="英文名" prop="englishName">
                     <el-input v-model="brand.englishName" placeholder="请输入英文名称"></el-input>
                 </el-form-item>
-                <el-form-item label="首字母" prop="firstLetter">
-                    <el-input v-model="brand.firstLetter" placeholder="请输入首字母"></el-input>
+                <el-form-item label="序号" prop="sortIndex">
+                    <el-input v-model="brand.sortIndex" placeholder="请输入序号"></el-input>
                 </el-form-item>
+				<el-form-item label="logo">
+					<el-upload
+							class="upload-demo"
+							action="http://localhost:9527/services/common/file/upload"
+							:before-remove="handleLogoRemove"
+							:file-list="logoList"
+							list-type="picture"
+							:limit="1"
+							:on-success="handleUploadSeccess"
+							:on-exceed="handleOutOfRange">
+						<el-button size="small" type="primary">点击上传</el-button>
+					</el-upload>
+				</el-form-item>
 				<el-form-item label="商品类型">
 					<el-cascader v-model="selectedOptions" :show-all-levels="false" :props="props" :options="productTypes" change-on-select ></el-cascader>
 				</el-form-item>
@@ -68,7 +81,7 @@
                 </el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click.native="formVisible = false">取消</el-button>
+				<el-button @click.native="handleClose">取消</el-button>
 				<el-button type="primary" @click.native="handleSubmit" :loading="brandLoading">提交</el-button>
 			</div>
 		</el-dialog>
@@ -88,6 +101,8 @@
 				total: 0,
 				page: 1,
 				size: 10,
+				//logo
+                logoList: [],
 				listLoading: false,
 				sels: [],//列表选中列
                 productTypes: [],	//品牌类型
@@ -102,20 +117,58 @@
                 brandRules: {
                     name: { required: true, message: '请输入品牌名称', trigger: 'blur' },
                     englishName: { required: true, message: '请输入英文名称', trigger: 'blur' },
-                    firstLetter: { required: true, message: '请输入首字母', trigger: 'blur' },
+                    sortIndex: { required: true, message: '请输入序号', trigger: 'blur' },
                 },
 				//编辑界面数据
                 brand: {
 				    id: "",
                     name: '',
                     englishName: "",
-                    firstLetter: "",
+                    sortIndex: "",
                     description: "",
                     productTypeId: "",
+                    logo: ""
 				},
 			}
 		},
 		methods: {
+            //文件超出个数
+            handleOutOfRange(){
+                this.$message({
+                    message: '只能上传一张图片',
+                    type: 'warning'
+                });
+            },
+            //文件上传成功钩子函数
+            handleUploadSeccess(response){
+                this.brand.logo = response.data;
+            },
+		    //直接点删除键
+            handleLogoRemove(file, fileList){
+                this.removeLogo(file.response.data);
+			},
+            //从fastfds中删除上传的logo
+            removeLogo(fileId){
+                this.$http.get("/common/file/delete",{
+                    params:{
+                        fileId:fileId
+					}
+                }).then(res=>{
+                    let data = res.data;
+                    if (data.success){
+                        this.$message({
+                            message: '删除成功',
+                            type: 'success'
+                        });
+                    }else{
+                        this.$message({
+                            message: '删除失败',
+                            type: 'error'
+                        });
+                        return false;//阻止删除
+					}
+				});
+			},
 			handleCurrentChange(val) {
 				this.page = val;
 				this.getBrands();
@@ -165,21 +218,16 @@
 				this.formVisible = true;
                 this.loadProductTypes();
 				this.brand = Object.assign({}, row);
+				//当有logo的时候显示出来
+				if(this.brand.logo){
+					this.logoList = [{name: this.brand.name,url:"http://192.168.0.106"+this.brand.logo}];
+				}
                 this.loadProductType();
 			},
 			//显示新增界面
 			handleAdd: function () {
 			    this.title = "新增";
 				this.formVisible = true;
-				this.brand = {
-				    id:"",
-                    name: '',
-                    englishName: "",
-                    firstLetter: "",
-                    description: "",
-                    productTypeId: ""
-				};
-                this.selectedOptions = [];
 				this.loadProductTypes();
 			},
 			//新增或修改
@@ -272,6 +320,23 @@
                 this.$http.get("/product/productType/ids/"+this.brand.productTypeId).then((res)=>{
                     this.selectedOptions = res.data;
                 });
+			},
+            handleClose(){
+                this.formVisible = false;
+                this.clearForm();
+			},
+			clearForm(){
+                this.brand = {
+                    id:"",
+                    name: '',
+                    englishName: "",
+                    sortIndex: "",
+                    description: "",
+                    productTypeId: "",
+                    logo: ""
+                };
+                this.logoList = [];
+                this.selectedOptions = [];
 			}
 		},
 		mounted() {

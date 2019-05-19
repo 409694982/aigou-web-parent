@@ -12,10 +12,12 @@ import Vuex from 'vuex'
 import routes from './routes'
 import 'font-awesome/css/font-awesome.min.css'
 import axios from 'axios'
+import VueContextMenu from 'vue-contextmenu'
 
 Vue.use(ElementUI)
 Vue.use(VueRouter)
 Vue.use(Vuex)
+Vue.use(VueContextMenu)
 
 //配置axios的base路径
 axios.defaults.baseURL = "http://localhost:9527/services"
