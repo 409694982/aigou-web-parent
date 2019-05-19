@@ -48,55 +48,31 @@
 			</el-pagination>
 		</el-col>
 
-		<!--编辑界面-->
-		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
-			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-				<el-form-item label="名称" prop="name">
-					<el-input v-model="editForm.name" placeholder="请输入品牌名称"></el-input>
+		<!--新增/编辑界面-->
+		<el-dialog :title="title" :visible.sync="formVisible" :close-on-click-modal="false">
+			<el-form :model="brand" label-width="80px" :rules="brandRules" ref="brand">
+                <el-form-item label="名称" prop="name">
+                    <el-input v-model="brand.name" placeholder="请输入品牌名称"></el-input>
+                </el-form-item>
+                <el-form-item label="英文名" prop="englishName">
+                    <el-input v-model="brand.englishName" placeholder="请输入英文名称"></el-input>
+                </el-form-item>
+                <el-form-item label="首字母" prop="firstLetter">
+                    <el-input v-model="brand.firstLetter" placeholder="请输入首字母"></el-input>
+                </el-form-item>
+				<el-form-item label="商品类型">
+					<el-cascader v-model="selectedOptions" :show-all-levels="false" :props="props" :options="productTypes" change-on-select ></el-cascader>
 				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="editForm.sex">
-						<el-radio class="radio" :label="1">男</el-radio>
-						<el-radio class="radio" :label="0">女</el-radio>
-					</el-radio-group>
-				</el-form-item>
-				<el-form-item label="年龄">
-					<el-input-number v-model="editForm.age" :min="0" :max="200"></el-input-number>
-				</el-form-item>
-				<el-form-item label="生日">
-					<el-date-picker type="date" placeholder="选择日期" v-model="editForm.birth"></el-date-picker>
-				</el-form-item>
-				<el-form-item label="地址">
-					<el-input type="textarea" v-model="editForm.addr"></el-input>
-				</el-form-item>
+                <el-form-item label="详情">
+                    <el-input type="textarea" v-model="brand.description" placeholder="请输入详情"></el-input>
+                </el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
-				<el-button @click.native="editFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+				<el-button @click.native="formVisible = false">取消</el-button>
+				<el-button type="primary" @click.native="handleSubmit" :loading="brandLoading">提交</el-button>
 			</div>
 		</el-dialog>
 
-		<!--新增界面-->
-		<el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false">
-			<el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-				<el-form-item label="名称" prop="name">
-					<el-input v-model="addForm.name" placeholder="请输入品牌名称"></el-input>
-				</el-form-item>
-				<el-form-item label="英文名" prop="englishName">
-					<el-input v-model="addForm.englishName" placeholder="请输入英文名称"></el-input>
-				</el-form-item>
-				<el-form-item label="首字母" prop="firstLetter">
-					<el-input v-model="addForm.firstLetter" placeholder="请输入首字母"></el-input>
-				</el-form-item>
-				<el-form-item label="详情">
-					<el-input type="textarea" v-model="addForm.description" placeholder="请输入详情"></el-input>
-				</el-form-item>
-			</el-form>
-			<div slot="footer" class="dialog-footer">
-				<el-button @click.native="addFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
-			</div>
-		</el-dialog>
 	</section>
 </template>
 
@@ -107,52 +83,39 @@
 				filters: {
 					keyword: ''
 				},
+                title: "新增",
 				brands: [],
 				total: 0,
 				page: 1,
 				size: 10,
 				listLoading: false,
 				sels: [],//列表选中列
-
-				editFormVisible: false,//编辑界面是否显示
-				editLoading: false,
-				editFormRules: {
-					name: [
-						{ required: true, message: '请输入姓名', trigger: 'blur' }
-					]
+                productTypes: [],	//品牌类型
+                props: {
+					value: "id",
+				    label: "name",
+					children: "children"
 				},
-				//编辑界面数据
-				editForm: {
-					id: 0,
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
-				},
-
-				addFormVisible: false,//新增界面是否显示
-				addLoading: false,
-				addFormRules: {
-					name: { required: true, message: '请输入品牌名称', trigger: 'blur' },
-					englishName: { required: true, message: '请输入英文名称', trigger: 'blur' },
+                selectedOptions:[],
+				formVisible: false,
+                brandLoading: false,
+                brandRules: {
+                    name: { required: true, message: '请输入品牌名称', trigger: 'blur' },
+                    englishName: { required: true, message: '请输入英文名称', trigger: 'blur' },
                     firstLetter: { required: true, message: '请输入首字母', trigger: 'blur' },
-				},
-				//新增界面数据
-				addForm: {
-					name: '',
+                },
+				//编辑界面数据
+                brand: {
+				    id: "",
+                    name: '',
                     englishName: "",
                     firstLetter: "",
                     description: "",
-				}
-
+                    productTypeId: "",
+				},
 			}
 		},
 		methods: {
-			//性别显示转换
-			formatSex: function (row, column) {
-				return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知';
-			},
 			handleCurrentChange(val) {
 				this.page = val;
 				this.getBrands();
@@ -194,67 +157,42 @@
 						}
                         this.getBrands();
 					});
-					//NProgress.start();
-					// let para = { id: row.id };
-					// removeUser(para).then((res) => {
-					// 	this.listLoading = false;
-					// 	//NProgress.done();
-					// 	this.$message({
-					// 		message: '删除成功',
-					// 		type: 'success'
-					// 	});
-					// 	this.getBrands();
-					// });
-				}).catch(() => {
-
 				});
 			},
 			//显示编辑界面
 			handleEdit: function (index, row) {
-				this.editFormVisible = true;
-				this.editForm = Object.assign({}, row);
+                this.title = "编辑";
+				this.formVisible = true;
+                this.loadProductTypes();
+				this.brand = Object.assign({}, row);
+                this.loadProductType();
 			},
 			//显示新增界面
 			handleAdd: function () {
-				this.addFormVisible = true;
-				this.addForm = {
+			    this.title = "新增";
+				this.formVisible = true;
+				this.brand = {
+				    id:"",
                     name: '',
                     englishName: "",
                     firstLetter: "",
                     description: "",
+                    productTypeId: ""
 				};
+                this.selectedOptions = [];
+				this.loadProductTypes();
 			},
-			//编辑
-			editSubmit: function () {
-				this.$refs.editForm.validate((valid) => {
-					if (valid) {
-						this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.editLoading = true;
-							//NProgress.start();
-							let para = Object.assign({}, this.editForm);
-							para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-							editUser(para).then((res) => {
-								this.editLoading = false;
-								//NProgress.done();
-								this.$message({
-									message: '提交成功',
-									type: 'success'
-								});
-								this.$refs['editForm'].resetFields();
-								this.editFormVisible = false;
-								this.getBrands();
-							});
-						});
-					}
-				});
-			},
-			//新增
-			addSubmit: function () {
-				this.$refs.addForm.validate((valid) => {
+			//新增或修改
+			handleSubmit: function () {
+				this.$refs.brand.validate((valid) => {
 					if (valid) {
 						this.$confirm('确认提交吗？', '提示', {}).then(() => {
 							this.addLoading = true;
-							this.$http.post("/product/brand",this.addForm).then((res)=>{
+							//获取选中的类型的数组
+							let ids = this.selectedOptions;
+							//获取最后一个值
+							this.brand.productTypeId = ids[ids.length-1];
+							this.$http.post("/product/brand",this.brand).then((res)=>{
 								let data = res.data;
 								if (data.success){
                                     this.$message({
@@ -268,20 +206,9 @@
                                     });
 								}
 							});
-							//NProgress.start();
-							// let para = Object.assign({}, this.addForm);
-							// para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-							// addUser(para).then((res) => {
-							this.addLoading = false;
-							// 	//NProgress.done();
-							// 	this.$message({
-							// 		message: '提交成功',
-							// 		type: 'success'
-							// 	});
-							this.$refs['addForm'].resetFields();
-							this.addFormVisible = false;
+							this.brandLoading = false;
+							this.formVisible = false;
 							this.getBrands();
-							// });
 						});
 					}
 				});
@@ -292,29 +219,59 @@
 			//批量删除
 			batchRemove: function () {
 				var ids = this.sels.map(item => item.id).toString();
+				console.debug(ids)
 				this.$confirm('确认删除选中记录吗？', '提示', {
 					type: 'warning'
 				}).then(() => {
 					this.listLoading = true;
 					//NProgress.start();
-					let para = { ids: ids };
-					batchRemoveUser(para).then((res) => {
-						this.listLoading = false;
-						//NProgress.done();
-						this.$message({
-							message: '删除成功',
-							type: 'success'
-						});
-						this.getBrands();
-					});
-				}).catch(() => {
-
+					this.$http.delete("/product/brand/"+ids).then((res)=>{
+                        this.listLoading = false;
+                        let data = res.data;
+                        if (data.success){
+                            this.$message({
+                                message: data.message,
+                                type: 'success'
+                            });
+                        }else {
+                            this.$message({
+                                message: data.message,
+                                type: 'error'
+                            });
+                        }
+                        this.getBrands();
+                    });
 				});
 			},
             //高级查询
             handleSearch(){
 			    this.page = 1;
 			    this.getBrands();
+			},
+			//加载商品分类
+			loadProductTypes(){
+			    this.$http.get("/product/productType/tree").then((res)=>{
+			        this.productTypes = this.loadTreeData(res.data);
+				});
+			},
+			//解决级联选择最后一项为null的问题
+			loadTreeData(data){
+                for(var i=0;i<data.length;i++){
+                    if(data[i].children.length<1){
+                        // children若为空数组，则将children设为undefined
+                        data[i].children=undefined;
+                    }else {
+                        // children若不为空数组，则继续 递归调用 本方法
+                        this.loadTreeData(data[i].children);
+                    }
+                }
+                return data;
+			},
+			//商品分类回填
+			loadProductType(){
+                this.$http.get("/product/productType/ids/"+this.brand.productTypeId).then((res)=>{
+                    this.selectedOptions = res.data;
+                });
 			}
 		},
 		mounted() {

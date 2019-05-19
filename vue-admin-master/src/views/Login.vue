@@ -84,6 +84,15 @@
           this.logining = false;
         });
       }
+    },
+    created(){
+        let that = this;
+        document.onkeydown =function(e){
+            e = window.event || e;
+            if(that.$route.path=='/login'&&(e.code=='Enter'||e.code=='enter')){//验证在登录界面和按得键是回车键enter
+                that.handleSubmit2();//登录函数
+            }
+        }
     }
   }
 
