@@ -113,7 +113,7 @@
                     let data = res.data;
                     if (data.success){
                         this.$message({
-                            message: data.message,
+                            message: "新增成功",
                             type: 'success'
                         });
                         this.productTypeForm = false;
@@ -134,7 +134,7 @@
                         let data = res.data;
                         if (data.success){
                             this.$message({
-                                message: data.message,
+                                message: "删除成功！",
                                 type: 'success'
                             });
                             this.productTypeForm = false;

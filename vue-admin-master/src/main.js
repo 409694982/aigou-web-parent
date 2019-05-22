@@ -13,6 +13,12 @@ import routes from './routes'
 import 'font-awesome/css/font-awesome.min.css'
 import axios from 'axios'
 import VueContextMenu from 'vue-contextmenu'
+import VueQuillEditor from 'vue-quill-editor'
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
+Vue.use(VueQuillEditor)
+
 
 Vue.use(ElementUI)
 Vue.use(VueRouter)

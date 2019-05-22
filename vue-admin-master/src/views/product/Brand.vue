@@ -127,7 +127,7 @@
                     sortIndex: "",
                     description: "",
                     productTypeId: "",
-                    logo: ""
+                    logo: "",
 				},
 			}
 		},
@@ -220,7 +220,7 @@
 				this.brand = Object.assign({}, row);
 				//当有logo的时候显示出来
 				if(this.brand.logo){
-					this.logoList = [{name: this.brand.name,url:"http://192.168.0.106"+this.brand.logo}];
+					this.logoList = [{name: this.brand.name,url:"http://192.168.43.181"+this.brand.logo}];
 				}
                 this.loadProductType();
 			},
@@ -240,6 +240,12 @@
 							let ids = this.selectedOptions;
 							//获取最后一个值
 							this.brand.productTypeId = ids[ids.length-1];
+							//把数组格式改为.1.2.3.这样的格式
+							this.brand.path = ".";
+							for (let i=0;i<ids.length;i++){
+                                this.brand.path += ids[i];
+                                this.brand.path += ".";
+							}
 							this.$http.post("/product/brand",this.brand).then((res)=>{
 								let data = res.data;
 								if (data.success){
