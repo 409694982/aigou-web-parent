@@ -13,7 +13,7 @@
         <el-main>
             <div v-show="productTypeForm">
                 <h1>添加{{title}}级类型</h1>
-                <el-form :model="productType" label-width="80px" ref="productType">
+                <el-form :model="productType" :rules="productTypeRule" label-width="80px" ref="productType">
                     <el-form-item label="名称" prop="name">
                         <el-input v-model="productType.name" placeholder="请输入品牌名称"></el-input>
                     </el-form-item>
@@ -38,6 +38,10 @@
         name: "app",
         data(){
             return{
+                productTypeRule: {
+                    name: { required: true, message: '请输入类型名称', trigger: 'blur' },
+                    sortIndex: { required: true, message: '请输入序号', trigger: 'blur' },
+                },
                 productTypes:[],
                 defaultProps: {
                     children: 'children',
@@ -100,28 +104,29 @@
                 // console.log('右键被点击的object:', object)
                 // console.log('右键被点击的value:', Node)
                 // console.log('右键被点击的element:', VueComponent)
-                // console.log('鼠标点击了树形结构图')
-                console.debug(this.id)
-                console.debug(this.pid)
             },
             foo() { // 取消鼠标监听事件 菜单栏
                 this.menuVisible = false
                 document.removeEventListener('click', this.foo) // 要及时关掉监听，不关掉的是一个坑，不信你试试，虽然前台显示的时候没有啥毛病，加一个alert你就知道了
             },
             handleSubmit(){
-                this.$http.post("/product/productType",this.productType).then(res=>{
-                    let data = res.data;
-                    if (data.success){
-                        this.$message({
-                            message: "新增成功",
-                            type: 'success'
-                        });
-                        this.productTypeForm = false;
-                        this.loadTree();
-                    }else {
-                        this.$message({
-                            message: data.message,
-                            type: 'error'
+                this.$refs.productType.validate((valid) => {
+                    if (valid) {
+                        this.$http.post("/product/productType",this.productType).then(res=>{
+                            let data = res.data;
+                            if (data.success){
+                                this.$message({
+                                    message: "新增成功",
+                                    type: 'success'
+                                });
+                                this.productTypeForm = false;
+                                this.loadTree();
+                            }else {
+                                this.$message({
+                                    message: data.message,
+                                    type: 'error'
+                                });
+                            }
                         });
                     }
                 });

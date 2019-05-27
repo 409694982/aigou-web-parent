@@ -19,10 +19,10 @@
 					<el-button type="primary" @click="handleSku">SKU属性</el-button>
 				</el-form-item>
 				<el-form-item>
-					<el-button type="primary" @click="handleAdd">上架</el-button>
+					<el-button type="primary" @click="handleOnSale(1)">上架</el-button>
 				</el-form-item>
 				<el-form-item>
-					<el-button type="primary" @click="handleAdd">下架</el-button>
+					<el-button type="primary" @click="handleOnSale(0)">下架</el-button>
 				</el-form-item>
 			</el-form>
 		</el-col>
@@ -238,6 +238,76 @@
 			}
 		},
 		methods: {
+            //商品上下架
+            handleOnSale(type){
+                //type=1表示上架  type=0表示下架
+				let message = "上";
+				if(!type){
+				    message = "下";
+				}
+                if(this.sels.length<=0){
+                    this.$message({
+                        message: "请至少选择一件商品"+message+"架",
+                        type: 'error'
+                    });
+                    return
+				}
+				let flag = true;
+				this.sels.forEach(e=>{
+					if(e.state==type){
+					   flag = false;
+					   return
+					}
+				});
+				if(!flag){
+                    this.$message({
+                        message: "请不要重复"+message+"架商品",
+                        type: 'error'
+                    });
+                    return
+				}
+                var ids = this.sels.map(item => item.id).toString();
+                this.$confirm('确认'+message+'架所选商品吗？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    if(type){
+                        this.$http.get("/product/product/onSale?ids="+ids).then((res)=>{
+                            this.listLoading = false;
+                            let data = res.data;
+                            if (data.success){
+                                this.$message({
+                                    message: "上架成功",
+                                    type: 'success'
+                                });
+                            }else {
+                                this.$message({
+                                    message: data.message,
+                                    type: 'error'
+                                });
+                            }
+                            this.getProducts();
+                        });
+					}else {
+                        this.$http.get("/product/product/offSale?ids="+ids).then((res)=>{
+                            this.listLoading = false;
+                            let data = res.data;
+                            if (data.success){
+                                this.$message({
+                                    message: "下架成功",
+                                    type: 'success'
+                                });
+                            }else {
+                                this.$message({
+                                    message: data.message,
+                                    type: 'error'
+                                });
+                            }
+                            this.getProducts();
+                        });
+					}
+                });
+			},
             handleSubmitSku(){
                 let param = {};
                 param.skuProperties = this.skuProperties;
@@ -356,6 +426,9 @@
 			},
 		    //时间格式化
             formatDate(time){
+                if (!time){
+                    return;
+				}
 				let date = new Date(time);
 				let year = date.getFullYear();
 				let mouth = date.getMonth()+1;//月份是从0开始的
@@ -435,7 +508,7 @@
                         let data = res.data;
                         if (data.success){
 							this.$message({
-								message: data.message,
+								message: "删除成功",
 								type: 'success'
 							});
 						}else {
@@ -475,12 +548,14 @@
 							let ids = this.selectedOptions;
 							//获取最后一个值
 							this.product.productTypeId = ids[ids.length-1];
-							this.product.medias = this.arrToString(this.product.mediasArr);
+							if(!this.product.medias){
+								this.product.medias = this.arrToString(this.product.mediasArr);
+							}
 							this.$http.post("/product/product",this.product).then((res)=>{
 								let data = res.data;
 								if (data.success){
                                     this.$message({
-                                        message: data.message,
+                                        message: "操作成功",
                                         type: 'success'
                                     });
 								}else {
@@ -525,7 +600,7 @@
                         let data = res.data;
                         if (data.success){
                             this.$message({
-                                message: data.message,
+                                message: "删除成功",
                                 type: 'success'
                             });
                         }else {

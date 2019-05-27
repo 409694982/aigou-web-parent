@@ -7,7 +7,7 @@
 	$.topbar = {
 		init: function() {
 			if ($(".SZY-USER-NAME").size() > 0) {
-				$.get('js/data/siteuser.json', {}, function(result) {
+				$.get('/static/js/data/siteuser.json', {}, function(result) {
 					if (result.code == 0 && result.data != null) {
 						$.sidebar.renderLogin(result.data);
 						$.sidebar.initLogin = true;
@@ -52,7 +52,7 @@
 				if ($(target).data("load")) {
 					return;
 				}
-				$.get("js/data/boxgoodslist.json", {}, function(result) {
+				$.get("static/js/data/boxgoodslist.json", {}, function(result) {
 					if (result.code == 0) {
 						$(".sidebar-historybox").find(".sidebar-historybox-goods-list").html(result.data);
 					}
@@ -67,7 +67,7 @@
 					return;
 				}
 
-				$.get('js/data/siteuser.json', {}, function(result) {
+				$.get('/static/js/data/siteuser.json', {}, function(result) {
 					if (result.code == 0 && result.data != null) {
 						$.sidebar.renderLogin(result.data);
 					}
@@ -172,7 +172,7 @@
 			$.cartbox.lasttime = new Date().getTime();
 
 			if ($(".cartbox").size() > 0 || $(".sidebar-cartbox").size() > 0) {
-				$.get("js/data/boxgoodslist.json", {}, function(result) {
+				$.get("static/js/data/boxgoodslist.json", {}, function(result) {
 					if (result.code == 0) {
 						$.cartbox.count = result.count;
 						$.cartbox.renderCount();
@@ -662,7 +662,7 @@
 				goods_ids: goods_ids
 			};
 
-			$.get('js/data/compare.goods-list.json', data, function(result) {
+			$.get('static/js/data/compare.goods-list.json', data, function(result) {
 
 				if ($.isFunction(callback)) {
 					callback.call(this, result);
@@ -829,7 +829,7 @@
 				sku_ids: sku_ids
 			};
 
-			$.get('js/data/user.collect.goods-list.json', data, function(result) {
+			$.get('static/js/data/user.collect.goods-list.json', data, function(result) {
 
 				if ($.isFunction(callback)) {
 					callback.call(this, result);
